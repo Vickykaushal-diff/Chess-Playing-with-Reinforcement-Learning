@@ -1,4 +1,7 @@
 stockfish/
+.venv/
+__pycache__/
+*.py[cod]
 v2_transformer/transformer_model.pth
 v2_transformer/transformer_model_1.pth
 v2_transformer/loss.csv

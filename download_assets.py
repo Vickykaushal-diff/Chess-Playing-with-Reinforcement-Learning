@@ -4,7 +4,7 @@ import requests
 # URL template for chessboard.js wikipedia pieces
 BASE_URL = "https://raw.githubusercontent.com/oakmac/chessboardjs/master/website/img/chesspieces/wikipedia/{}.png"
 
-ASSETS_DIR = r"e:\Chess\assets"
+ASSETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 if not os.path.exists(ASSETS_DIR):
     os.makedirs(ASSETS_DIR)
 

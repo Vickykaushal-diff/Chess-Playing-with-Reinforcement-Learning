@@ -33,8 +33,18 @@ class ChessDataset(Dataset):
 
 class Trainer:
     def __init__(self, device=None):
+        self.xm = None
         if device:
             self.device = device
+        elif os.environ.get("USE_TPU") == "1":
+            try:
+                import torch_xla.core.xla_model as xm
+
+                self.xm = xm
+                self.device = xm.xla_device()
+            except ImportError:
+                print("USE_TPU=1 was set, but torch_xla is not installed. Falling back to CPU/GPU.")
+                self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         else:
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
             
@@ -187,18 +197,28 @@ class Trainer:
                 
                 loss = v_loss + p_loss
                 loss.backward()
-                self.optimizer.step()
+                if self.xm:
+                    self.xm.optimizer_step(self.optimizer)
+                    self.xm.mark_step()
+                else:
+                    self.optimizer.step()
                 
                 total_loss += loss.item()
                 
             print(f"Avg Loss: {total_loss / len(dataloader):.4f}")
             
             # Save Latest
-            torch.save(self.model.state_dict(), "best_model.pth")
+            if self.xm:
+                self.xm.save(self.model.state_dict(), "best_model.pth")
+            else:
+                torch.save(self.model.state_dict(), "best_model.pth")
             
             # Save Checkpoint (History)
             os.makedirs("checkpoints", exist_ok=True)
-            torch.save(self.model.state_dict(), f"checkpoints/model_iter_{i+1}.pth")
+            if self.xm:
+                self.xm.save(self.model.state_dict(), f"checkpoints/model_iter_{i+1}.pth")
+            else:
+                torch.save(self.model.state_dict(), f"checkpoints/model_iter_{i+1}.pth")
             print(f"Model saved: best_model.pth & checkpoints/model_iter_{i+1}.pth")
 
 if __name__ == "__main__":
