@@ -20,6 +20,26 @@ This repository is split into four primary components:
 
 ---
 
+## 🛠️ Tech Stack & Technologies Used
+
+### Backend (Python Engine & API Server)
+* **Python 3.10+**: Core programming language.
+* **FastAPI**: Modern, fast web framework for building APIs with Python. Handles REST endpoints for move calculations, undo operations, spectator loops, and live training status.
+* **Uvicorn**: High-performance ASGI web server.
+* **PyTorch (torch, nn, optim)**: Deep Learning framework used to define, load, and run the **AlphaZero ChessNet (ResNet)** model and the **NNUE ChessNN (Feedforward)** model.
+* **python-chess**: Pure Python chess library for move generation, validation, FEN parsing, and rules tracking (check, checkmate, draw detection).
+* **NumPy**: Linear algebra and numerical operations for game state representation and MCTS probabilities.
+* **Pygame**: Library used for local graphical user interfaces (Human vs AI, versus engines, spectator screens).
+
+### Frontend (Interactive Dashboard Web App)
+* **HTML5**: Semantic document structure for chess boards, config panels, and responsive widgets.
+* **CSS3 (Vanilla)**: Styling with a premium dark cyber-glassmorphism system (radial neon glow elements, backdrop-filter blurs, drop-shadow filters) and responsive CSS Grid/Flexbox layouts.
+* **Vanilla JavaScript (ES6)**: Visual board paint controller, drag-and-drop mechanics, state subscriber, and asynchronous API consumer (Fetch API).
+* **Chart.js**: Graphing library to plot policy loss, value loss, and total loss trends in real-time.
+* **Web Audio API**: Browser-native synthesized audio generator simulating wood knock sound waves for clicks, captures, and checks (completely offline, zero audio asset files required).
+
+---
+
 ## 📂 Project Directory Structure
 
 ```directory
