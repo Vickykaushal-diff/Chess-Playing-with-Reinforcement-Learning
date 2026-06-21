@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Reinforcement Learning Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom stylesheet -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- Chart.js for live training loss graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="glow-container">
+        <div class="glow-circle cyan-glow"></div>
+        <div class="glow-circle purple-glow"></div>
+    </div>
+
+    <header class="app-header">
+        <div class="logo">
+            <span class="logo-icon">♟</span>
+            <h1>Chess <span>RL</span> Suite</h1>
+        </div>
+        <nav class="app-nav">
+            <button id="tab-arena" class="nav-tab active">
+                <span class="icon">⚔️</span> Play Arena
+            </button>
+            <button id="tab-training" class="nav-tab">
+                <span class="icon">🧠</span> RL Trainer
+            </button>
+        </nav>
+        <div class="connection-status">
+            <span class="status-dot online"></span>
+            <span class="status-text">Engine Local Server Connected</span>
+        </div>
+    </header>
+
+    <main id="main-content" class="dashboard-grid view-arena">
+        <!-- LEFT PANEL: Chess Match Panel -->
+        <section class="panel match-panel card glass-card">
+            <div class="card-header">
+                <h2>Chess Match Arena</h2>
+                <div class="game-actions-quick">
+                    <button id="btn-sound-toggle" class="btn btn-icon active" title="Toggle Sound">
+                        <span class="icon">🔊</span>
+                    </button>
+                    <button id="btn-theme-toggle" class="btn btn-icon" title="Flip Board">
+                        <span class="icon">🔄</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="arena-content">
+                <!-- Turn and Alert Indicator -->
+                <div class="game-status-bar">
+                    <div class="player-indicator-container">
+                        <div id="player-white" class="player-indicator active">
+                            <span class="dot"></span> <span id="player-white-name">White (You)</span>
+                        </div>
+                        <div id="player-black" class="player-indicator">
+                            <span class="dot"></span> <span id="player-black-name">Black (AI: Minimax)</span>
+                        </div>
+                    </div>
+                    <div id="alert-banner" class="alert-banner hidden">Check!</div>
+                </div>
+
+                <!-- Main Interactive Chess Board -->
+                <div class="board-wrapper">
+                    <div id="chess-board" class="chess-board orientation-white">
+                        <!-- Squares generated dynamically by JS -->
+                    </div>
+                </div>
+
+                <!-- Match Operations -->
+                <div class="match-controls">
+                    <button id="btn-new-game" class="btn btn-primary">
+                        <span class="icon">➕</span> New Game
+                    </button>
+                    <button id="btn-play-spectator" class="btn btn-success hidden">
+                        <span class="icon">▶️</span> Start Match
+                    </button>
+                    <button id="btn-pause-spectator" class="btn btn-danger hidden">
+                        <span class="icon">⏸️</span> Pause
+                    </button>
+                    <button id="btn-undo" class="btn btn-secondary" disabled>
+                        <span class="icon">↩️</span> Undo
+                    </button>
+                    <button id="btn-resign" class="btn btn-danger">
+                        <span class="icon">🏳️</span> Resign
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Configurations & Telemetry -->
+        <div class="right-column config-panel">
+            <section class="panel card glass-card">
+                <div class="card-header">
+                    <h2>Agent Config & Telemetry</h2>
+                </div>
+                <div class="card-body config-layout">
+                    <div class="input-group">
+                        <label for="mode-select">Match Mode</label>
+                        <select id="mode-select" class="form-select">
+                            <option value="human_vs_ai">Human vs AI (Play)</option>
+                            <option value="ai_vs_ai">AI vs AI (Spectate)</option>
+                        </select>
+                    </div>
+
+                    <!-- Config groups for Human vs AI -->
+                    <div id="group-human-config" class="config-layout">
+                        <div class="input-group">
+                            <label for="opponent-select">Select Opponent Agent</label>
+                            <select id="opponent-select" class="form-select">
+                                <option value="minimax">Heuristic Minimax (Alpha-Beta)</option>
+                                <option value="alphazero">AlphaZero ResNet (MCTS)</option>
+                                <option value="nnue">NNUE Minimax Engine</option>
+                                <option value="random">Random Mover</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Config groups for AI vs AI Spectator -->
+                    <div id="group-spectator-config" class="config-layout hidden">
+                        <div class="input-group">
+                            <label for="white-agent-select">White Agent (First Move)</label>
+                            <select id="white-agent-select" class="form-select">
+                                <option value="minimax">Heuristic Minimax (Alpha-Beta)</option>
+                                <option value="alphazero">AlphaZero ResNet (MCTS)</option>
+                                <option value="nnue">NNUE Minimax Engine</option>
+                                <option value="random">Random Mover</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="black-agent-select">Black Agent (Second Move)</label>
+                            <select id="black-agent-select" class="form-select">
+                                <option value="nnue" selected>NNUE Minimax Engine</option>
+                                <option value="minimax">Heuristic Minimax (Alpha-Beta)</option>
+                                <option value="alphazero">AlphaZero ResNet (MCTS)</option>
+                                <option value="random">Random Mover</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="difficulty-select">Difficulty / Search Depth</label>
+                        <select id="difficulty-select" class="form-select">
+                            <option value="easy">Easy (Low depth/simulations)</option>
+                            <option value="medium" selected>Medium (Standard depth/simulations)</option>
+                            <option value="hard">Hard (Deep search/simulations)</option>
+                        </select>
+                    </div>
+
+                    <!-- Telemetry Stats Grid -->
+                    <div class="telemetry-grid">
+                        <div class="telemetry-card">
+                            <span class="telemetry-label">Move Time</span>
+                            <span id="telemetry-time" class="telemetry-val">0.00s</span>
+                        </div>
+                        <div class="telemetry-card">
+                            <span class="telemetry-label">Depth Searched</span>
+                            <span id="telemetry-depth" class="telemetry-val">0</span>
+                        </div>
+                        <div class="telemetry-card">
+                            <span class="telemetry-label">Nodes Visited</span>
+                            <span id="telemetry-nodes" class="telemetry-val">0</span>
+                        </div>
+                        <div class="telemetry-card">
+                            <span class="telemetry-label">Eval Score</span>
+                            <span id="telemetry-score" class="telemetry-val">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Evaluation Bar -->
+                    <div class="eval-bar-container">
+                        <div class="eval-bar-labels">
+                            <span>Black +</span>
+                            <span>Draw</span>
+                            <span>White +</span>
+                        </div>
+                        <div class="eval-bar-track">
+                            <div id="eval-bar-fill" class="eval-bar-fill" style="width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- EXPANDABLE BOTTOM PANEL: Reinforcement Learning Trainer -->
+        <section class="panel training-panel card glass-card">
+            <div class="card-header">
+                <h2>Live RL Self-Play Training</h2>
+                <span id="train-status-badge" class="badge badge-inactive">Offline</span>
+            </div>
+            <div class="card-body training-layout">
+                <!-- Training Controls: Settings & Actions combined -->
+                <div class="training-controls">
+                    <div class="training-settings-and-actions">
+                        <!-- Train Settings Form -->
+                        <div class="training-settings-grid">
+                            <div class="input-group mini">
+                                <label for="train-games">Games / Iter</label>
+                                <input type="number" id="train-games" class="form-input" value="10" min="1" max="100">
+                            </div>
+                            <div class="input-group mini">
+                                <label for="train-sims">MCTS Sims</label>
+                                <input type="number" id="train-sims" class="form-input" value="30" min="5" max="200">
+                            </div>
+                            <div class="input-group mini">
+                                <label for="train-lr">Learning Rate</label>
+                                <input type="number" id="train-lr" class="form-input" value="0.001" step="0.0005" min="0.0001">
+                            </div>
+                            <div class="input-group mini">
+                                <label for="train-batch">Batch Size</label>
+                                <input type="number" id="train-batch" class="form-input" value="32" min="8" max="256">
+                            </div>
+                        </div>
+
+                        <div class="training-actions">
+                            <button id="btn-start-train" class="btn btn-success w-100">
+                                <span class="icon">⚡</span> Run Self-Play Training
+                            </button>
+                            <button id="btn-stop-train" class="btn btn-danger w-100 hidden">
+                                <span class="icon">🛑</span> Stop Training
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training Telemetry Dashboard -->
+                <div class="training-dashboard-content hidden" id="training-dashboard">
+                    <div class="training-live-row">
+                        <!-- Live Streaming Mini Board -->
+                        <div class="mini-board-container">
+                            <span class="mini-title">Live Self-Play Stream</span>
+                            <div id="mini-board" class="mini-chess-board">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Live Statistics -->
+                        <div class="training-stats-container">
+                            <span class="mini-title">Training Analytics</span>
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat">
+                                    <span class="lbl">Iteration</span>
+                                    <span id="train-iter" class="val">-</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="lbl">Active Game</span>
+                                    <span id="train-game" class="val">-</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="lbl">Plies/Moves</span>
+                                    <span id="train-moves" class="val">-</span>
+                                </div>
+                                <div class="mini-stat">
+                                    <span class="lbl">W / L / D</span>
+                                    <span id="train-wld" class="val">0 / 0 / 0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Loss Chart -->
+                    <div class="chart-container">
+                        <canvas id="lossChart"></canvas>
+                    </div>
+
+                    <!-- Live Terminal Logs -->
+                    <div class="console-container">
+                        <div class="console-header">
+                            <span>Trainer Live Output Logs</span>
+                            <button id="btn-clear-console" class="btn btn-link">Clear</button>
+                        </div>
+                        <div id="console-log" class="console-body">
+                            <span class="console-empty">Logs will print here as training starts...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 | Designed and Developed by Kaushal Sharma</p>
+        <p style="margin-top: 0.4rem; font-size: 0.75rem; opacity: 0.8;">Built with FastAPI, PyTorch & Vanilla CSS.</p>
+    </footer>
+
+    <!-- Game Over Glass Overlay Modal -->
+    <div id="game-over-overlay" class="overlay-modal hidden">
+        <div class="overlay-content card glass-card text-center">
+            <span class="overlay-icon">🏆</span>
+            <h2 id="game-over-title">Game Over</h2>
+            <p id="game-over-result" class="game-over-text">White Wins (1-0)</p>
+            <p id="game-over-reason" class="game-over-reason-text">Checkmate</p>
+            <button id="btn-close-overlay" class="btn btn-primary w-100">Play Another Match</button>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

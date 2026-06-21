@@ -1,7 +1,10 @@
 import chess
 import torch
 import time
-from model import ChessNN, fen_to_tensor
+try:
+    from nnue_alpha_beta.model import ChessNN, fen_to_tensor
+except ImportError:
+    from model import ChessNN, fen_to_tensor
 import math
 
 class NNUEEngine:
